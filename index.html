@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shoe Mileage Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .quick-add {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .quick-add h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .shoe-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .shoe-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shoe-btn:nth-child(1) {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+
+        .shoe-btn:nth-child(2) {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+
+        .shoe-btn:nth-child(3) {
+            background: linear-gradient(135deg, #45b7d1, #3498db);
+        }
+
+        .shoe-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .shoe-btn:active {
+            transform: translateY(0);
+        }
+
+        .miles-display {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stats {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stats h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .stat-item:nth-child(2) { border-left-color: #ff6b6b; }
+        .stat-item:nth-child(3) { border-left-color: #4ecdc4; }
+        .stat-item:nth-child(4) { border-left-color: #45b7d1; }
+
+        .shoe-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .miles {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .edit-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .edit-btn:hover {
+            background: #e53e3e;
+        }
+
+        .success-message {
+            background: #48bb78;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+        }
+
+        .shoe-settings {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .shoe-settings h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .shoe-name-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+        }
+
+        .rename-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+
+        .reset-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👟 Shoe Mileage Tracker</h1>
+        
+        <div id="successMessage" class="success-message">
+            Miles added successfully! 🎉
+        </div>
+
+        <div class="quick-add">
+            <h2>Select Shoe Used</h2>
+            <div id="milesDisplay" class="miles-display">
+                <span id="currentMiles">No workout data</span>
+            </div>
+            <div class="shoe-buttons">
+                <button class="shoe-btn" onclick="addMiles(0)">
+                    <span id="shoeName0">Shoe 1</span>
+                </button>
+                <button class="shoe-btn" onclick="addMiles(1)">
+                    <span id="shoeName1">Shoe 2</span>
+                </button>
+                <button class="shoe-btn" onclick="addMiles(2)">
+                    <span id="shoeName2">Shoe 3</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="shoe-settings">
+            <h3>Customize Shoe Names</h3>
+            <input type="text" class="shoe-name-input" id="newName0" placeholder="Enter name for Shoe 1">
+            <button class="rename-btn" onclick="renameShoe(0)">Rename Shoe 1</button>
+            <button class="reset-btn" onclick="resetMiles(0)">Reset Miles</button>
+            <br>
+            <input type="text" class="shoe-name-input" id="newName1" placeholder="Enter name for Shoe 2">
+            <button class="rename-btn" onclick="renameShoe(1)">Rename Shoe 2</button>
+            <button class="reset-btn" onclick="resetMiles(1)">Reset Miles</button>
+            <br>
+            <input type="text" class="shoe-name-input" id="newName2" placeholder="Enter name for Shoe 3">
+            <button class="rename-btn" onclick="renameShoe(2)">Rename Shoe 3</button>
+            <button class="reset-btn" onclick="resetMiles(2)">Reset Miles</button>
+        </div>
+
+        <div class="stats">
+            <h2>Total Miles per Shoe</h2>
+            <div class="stat-item">
+                <span class="shoe-name" id="statName0">Shoe 1</span>
+                <span class="miles" id="miles0">0.0 miles</span>
+            </div>
+            <div class="stat-item">
+                <span class="shoe-name" id="statName1">Shoe 2</span>
+                <span class="miles" id="miles1">0.0 miles</span>
+            </div>
+            <div class="stat-item">
+                <span class="shoe-name" id="statName2">Shoe 3</span>
+                <span class="miles" id="miles2">0.0 miles</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store data in memory during the session
+        let shoeData = {
+            names: ['Shoe 1', 'Shoe 2', 'Shoe 3'],
+            miles: [0.0, 0.0, 0.0]
+        };
+
+        let currentWorkoutMiles = 0;
+
+        // Get miles from URL parameter (passed from iOS Shortcut)
+        function getWorkoutMilesFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const miles = urlParams.get('miles');
+            if (miles) {
+                currentWorkoutMiles = parseFloat(miles);
+                document.getElementById('currentMiles').textContent = `${currentWorkoutMiles.toFixed(2)} miles walked`;
+                // Clear the URL parameter for privacy
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        // Load data from memory or initialize
+        function loadData() {
+            try {
+                const saved = window.shoeTrackerData;
+                if (saved) {
+                    shoeData = saved;
+                }
+            } catch (e) {
+                console.log('No saved data found, starting fresh');
+            }
+            updateDisplay();
+        }
+
+        // Save data to memory
+        function saveData() {
+            try {
+                window.shoeTrackerData = shoeData;
+            } catch (e) {
+                console.log('Unable to save data');
+            }
+        }
+
+        // Update all display elements
+        function updateDisplay() {
+            for (let i = 0; i < 3; i++) {
+                document.getElementById(`shoeName${i}`).textContent = shoeData.names[i];
+                document.getElementById(`statName${i}`).textContent = shoeData.names[i];
+                document.getElementById(`miles${i}`).textContent = shoeData.miles[i].toFixed(1) + ' miles';
+            }
+        }
+
+        // Add miles to a specific shoe
+        function addMiles(shoeIndex) {
+            if (currentWorkoutMiles <= 0) {
+                alert('No workout data available. Please run this from your iOS Shortcut after a workout.');
+                return;
+            }
+
+            shoeData.miles[shoeIndex] += currentWorkoutMiles;
+            
+            saveData();
+            updateDisplay();
+            showSuccessMessage();
+            
+            // Reset current workout miles
+            currentWorkoutMiles = 0;
+            document.getElementById('currentMiles').textContent = 'Miles added successfully!';
+        }
+
+        // Show success message
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.classList.add('show');
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 2000);
+        }
+
+        // Rename a shoe
+        function renameShoe(shoeIndex) {
+            const newName = document.getElementById(`newName${shoeIndex}`).value.trim();
+            if (newName) {
+                shoeData.names[shoeIndex] = newName;
+                document.getElementById(`newName${shoeIndex}`).value = '';
+                saveData();
+                updateDisplay();
+            }
+        }
+
+        // Reset miles for a shoe
+        function resetMiles(shoeIndex) {
+            if (confirm(`Are you sure you want to reset miles for ${shoeData.names[shoeIndex]}?`)) {
+                shoeData.miles[shoeIndex] = 0.0;
+                saveData();
+                updateDisplay();
+            }
+        }
+
+        // Initialize the app
+        loadData();
+        getWorkoutMilesFromURL();
+    </script>
+</body>
+</html>

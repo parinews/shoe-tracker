@@ -311,6 +311,9 @@
     </div>
 
     <script>
+        // Google Sheets integration - Replace with your Web App URL
+        const GOOGLE_SHEETS_URL = 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE';
+        
         // Store data in memory during the session
         let shoeData = {
             names: ['Shoe 1', 'Shoe 2', 'Shoe 3'],
@@ -331,7 +334,52 @@
             }
         }
 
-        // Load data from memory or initialize
+        // Load data from Google Sheets
+        async function loadDataFromSheets() {
+            try {
+                document.getElementById('currentMiles').textContent = 'Loading data...';
+                const response = await fetch(`${GOOGLE_SHEETS_URL}?action=load`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    shoeData = data.data;
+                    updateDisplay();
+                } else {
+                    console.error('Error loading data:', data.message);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                // Fallback to local storage if Sheets fails
+                loadData();
+            }
+        }
+
+        // Save data to Google Sheets
+        async function saveDataToSheets() {
+            try {
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'save',
+                        data: shoeData
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('Error saving data:', result.message);
+                }
+            } catch (error) {
+                console.error('Error saving data:', error);
+                // Fallback to local storage
+                saveData();
+            }
+        }
+
+        // Load data from memory (fallback)
         function loadData() {
             try {
                 const saved = window.shoeTrackerData;
@@ -344,7 +392,7 @@
             updateDisplay();
         }
 
-        // Save data to memory
+        // Save data to memory (fallback)
         function saveData() {
             try {
                 window.shoeTrackerData = shoeData;
@@ -363,7 +411,7 @@
         }
 
         // Add miles to a specific shoe
-        function addMiles(shoeIndex) {
+        async function addMiles(shoeIndex) {
             if (currentWorkoutMiles <= 0) {
                 alert('No workout data available. Please run this from your iOS Shortcut after a workout.');
                 return;
@@ -371,7 +419,13 @@
 
             shoeData.miles[shoeIndex] += currentWorkoutMiles;
             
-            saveData();
+            // Save to Google Sheets
+            if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
+                await saveDataToSheets();
+            } else {
+                saveData(); // Fallback to local storage
+            }
+            
             updateDisplay();
             showSuccessMessage();
             
@@ -390,28 +444,51 @@
         }
 
         // Rename a shoe
-        function renameShoe(shoeIndex) {
+        async function renameShoe(shoeIndex) {
             const newName = document.getElementById(`newName${shoeIndex}`).value.trim();
             if (newName) {
                 shoeData.names[shoeIndex] = newName;
                 document.getElementById(`newName${shoeIndex}`).value = '';
-                saveData();
+                
+                if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
+                    await saveDataToSheets();
+                } else {
+                    saveData();
+                }
+                
                 updateDisplay();
             }
         }
 
         // Reset miles for a shoe
-        function resetMiles(shoeIndex) {
+        async function resetMiles(shoeIndex) {
             if (confirm(`Are you sure you want to reset miles for ${shoeData.names[shoeIndex]}?`)) {
                 shoeData.miles[shoeIndex] = 0.0;
-                saveData();
+                
+                if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
+                    await saveDataToSheets();
+                } else {
+                    saveData();
+                }
+                
                 updateDisplay();
             }
         }
 
         // Initialize the app
-        loadData();
-        getWorkoutMilesFromURL();
+        async function initializeApp() {
+            getWorkoutMilesFromURL();
+            
+            // Try to load from Google Sheets first, fallback to local storage
+            if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
+                await loadDataFromSheets();
+            } else {
+                loadData();
+            }
+        }
+
+        // Start the app
+        initializeApp();
     </script>
 </body>
 </html>

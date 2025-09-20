@@ -311,10 +311,7 @@
     </div>
 
     <script>
-        // Google Sheets integration - Replace with your Web App URL
-        const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycby95HhfdIdPl1RwaFJa7aIF0oL_l0RyS_b7VLNXmWci67udXsV6wRlBfcHjzgmPSaQz/exec';
-        
-        // Store data in memory during the session
+        // Store data in browser's localStorage (persistent across sessions)
         let shoeData = {
             names: ['Shoe 1', 'Shoe 2', 'Shoe 3'],
             miles: [0.0, 0.0, 0.0]
@@ -334,55 +331,10 @@
             }
         }
 
-        // Load data from Google Sheets
-        async function loadDataFromSheets() {
-            try {
-                document.getElementById('currentMiles').textContent = 'Loading data...';
-                const response = await fetch(`${GOOGLE_SHEETS_URL}?action=load`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    shoeData = data.data;
-                    updateDisplay();
-                } else {
-                    console.error('Error loading data:', data.message);
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-                // Fallback to local storage if Sheets fails
-                loadData();
-            }
-        }
-
-        // Save data to Google Sheets
-        async function saveDataToSheets() {
-            try {
-                const response = await fetch(GOOGLE_SHEETS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'save',
-                        data: shoeData
-                    })
-                });
-                
-                const result = await response.json();
-                if (!result.success) {
-                    console.error('Error saving data:', result.message);
-                }
-            } catch (error) {
-                console.error('Error saving data:', error);
-                // Fallback to local storage
-                saveData();
-            }
-        }
-
-        // Load data from memory (fallback)
+        // Load data from localStorage
         function loadData() {
             try {
-                const saved = window.shoeTrackerData;
+                const saved = JSON.parse(localStorage.getItem('shoeTrackerData'));
                 if (saved) {
                     shoeData = saved;
                 }
@@ -392,10 +344,10 @@
             updateDisplay();
         }
 
-        // Save data to memory (fallback)
+        // Save data to localStorage
         function saveData() {
             try {
-                window.shoeTrackerData = shoeData;
+                localStorage.setItem('shoeTrackerData', JSON.stringify(shoeData));
             } catch (e) {
                 console.log('Unable to save data');
             }
@@ -411,7 +363,7 @@
         }
 
         // Add miles to a specific shoe
-        async function addMiles(shoeIndex) {
+        function addMiles(shoeIndex) {
             if (currentWorkoutMiles <= 0) {
                 alert('No workout data available. Please run this from your iOS Shortcut after a workout.');
                 return;
@@ -419,13 +371,7 @@
 
             shoeData.miles[shoeIndex] += currentWorkoutMiles;
             
-            // Save to Google Sheets
-            if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
-                await saveDataToSheets();
-            } else {
-                saveData(); // Fallback to local storage
-            }
-            
+            saveData();
             updateDisplay();
             showSuccessMessage();
             
@@ -444,46 +390,44 @@
         }
 
         // Rename a shoe
-        async function renameShoe(shoeIndex) {
+        function renameShoe(shoeIndex) {
             const newName = document.getElementById(`newName${shoeIndex}`).value.trim();
             if (newName) {
                 shoeData.names[shoeIndex] = newName;
                 document.getElementById(`newName${shoeIndex}`).value = '';
-                
-                if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
-                    await saveDataToSheets();
-                } else {
-                    saveData();
-                }
-                
+                saveData();
                 updateDisplay();
             }
         }
 
         // Reset miles for a shoe
-        async function resetMiles(shoeIndex) {
+        function resetMiles(shoeIndex) {
             if (confirm(`Are you sure you want to reset miles for ${shoeData.names[shoeIndex]}?`)) {
                 shoeData.miles[shoeIndex] = 0.0;
-                
-                if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
-                    await saveDataToSheets();
-                } else {
-                    saveData();
-                }
-                
+                saveData();
                 updateDisplay();
             }
         }
 
+        // Export data (for backup)
+        function exportData() {
+            const dataStr = JSON.stringify(shoeData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'shoe-tracker-backup.json';
+            link.click();
+        }
+
         // Initialize the app
-        async function initializeApp() {
+        function initializeApp() {
             getWorkoutMilesFromURL();
+            loadData();
             
-            // Try to load from Google Sheets first, fallback to local storage
-            if (GOOGLE_SHEETS_URL !== 'YOUR_GOOGLE_SHEETS_WEB_APP_URL_HERE') {
-                await loadDataFromSheets();
-            } else {
-                loadData();
+            // Show current miles or welcome message
+            if (currentWorkoutMiles === 0) {
+                document.getElementById('currentMiles').textContent = 'Ready to track your next workout!';
             }
         }
 
